@@ -1,47 +1,57 @@
 
     BuildCmd: `g++ -std=gnu++11 core.cpp -I/home/bruce/proteus/xbuilds/localHost/builds/libs/unicode/release-51-1/include/ -L/home/bruce/proteus/xbuilds/localHost/builds/libs/unicode/release-51-1/lib/ -pthread   -licuio -licui18n -licutu -licuuc -licudata -licule -liculx -licutest -ldl  -o core`
     Title: `Proteus Definition`
-    FileName: `Prot.h`
+    FileName: `Prot.cpp`
     Version: `1`
 
     Platform1:`amd64:linux:c++`
 
-    Include: `<cstdint>, <string>, <cstring>, <vector>, <map>, <cstdarg>, "remiss.h", <boost/intrusive_ptr.hpp>,
+    Include: `<fstream>, <cstdint>, <string>, <cstring>, <vector>, <map>, <cstdarg>, "remiss.h", <boost/intrusive_ptr.hpp>,
             "unicode/locid.h", "unicode/unistr.h", "unicode/putil.h", "unicode/ustream.h", "unicode/uspoof.h", "unicode/unorm.h", "unicode/normalizer2.h"`
 
-    modifierCmds: `generateParser(dataTags['infonParse'], 'infon')`
+    modifierCmds: `
+        generateParser(dataTags['infonParse'], 'infon')
+        | generateEventHandler()
+        | generateMainFunction()
+    `
 
 
     infonParse: `{
-        StructParser pureInfon = { !"asd" "jui" #infon
+        StructParser pureInfon = {pureInfon !"asd" "jui"
         }
 
+        StructParser infNode = {is
+            [leftIs (!":"  <=>  leftMode=colLeft0; ) |  ("::" <=>  leftMode=colLeft2; ) | ( ":"<=> leftMode=colLeft1; )]
+            [midIs ("==" <=> looseType=true;) | ("=" <=> looseType=false;) ]
+            [rightIs (!":"  <=>  rightMode=colRight0; ) |  ("::" <=>  rightMode=colRight2; ) | ( ":"<=> rightMode=colRight1; )]
+            #item
+            <#next>
+            WS
+        }
 
-        StructParser infon = { WS
-            [( "@X"; toExec = true;) | (!"@X"; toExec = false;)] WS
-            [("@";  asDesc = true;) | (!"@";  asDesc = false;)] WS
-            [("!";  asNot  = true;) | (!"!";  asNot  = false;)] WS
-            [
-                ("?";  value.type=tUnknown; value.format=fUnknown; size.type=tNum; size.format=fUnknown;)
-                | ("%W"; FindMode=iToWorld;)
-                | ("%C"; FindMode=iToCtxt; )
-                | ("%A"; FindMode=iToArgs; )
-                | ("%V"; FindMode=iToVars; )
-                | ("%\\";FindMode=iToHome; )
-                | #tagChain
-                | ({"*" #size "+" #value};)
-                | (size=1; {"+" #value}; )
-                | (size.type=tNum; size.format=fUnknown; #value; )
+        StructParser infon = {infon WS
+            [toExec ("@X" <=> toExec = true;)  | (!"@X"<=>  toExec = false;)]  WS
+            [asDesc ("@"  <=> asDesc = true;)  | (!"@" <=>  asDesc = false;)]  WS
+            [toHome ("\\"  <=> moveHome = true;) | (!"\\" <=>  moveHome = false;)] WS       // Move the cursor to home
+            [asNot  ("!"  <=> asNot  = true;)  | (!"!" <=>  asNot  = false;)]  WS
+            [sizeAndValue
+                ("?" <=>   value.type=tUnknown; value.format=fUnknown; size.type=tNum; size.format=fUnknown;)
+            //    | ()
+                | ("%W"<=>  FindMode=iToWorld;)
+                | ("%C"<=>  FindMode=iToCtxt; )
+                | ("%A"<=>  FindMode=iToArgs; )
+                | ("%V"<=>  FindMode=iToVars; )
+                | ("%\\"<=> FindMode=iToPathH;)
+             //   | #tagChain
+                | ({sizeAndValueLiteral  "*" #size "+" #value} <=>  FindMode=iNone;)
+                | ({Value "+" #value} <=>  size=1; )
+                | (#value <=>  size.type=tNum; size.format=fUnknown; )
             ] WS
 
-            {
-                [!":" | "::" | ":"]
-                ["==" | "="]
-                [!":" | "::" | ":"]
-                #infon
-            } WS
-            {
-                [!"<" | {"<:" #infon} | {"<!" #infon}] WS
+            <#workList>
+
+            {args
+                [noFunc !"<" | {Func "<:" #args} | {negFunc "<!" #args}] WS
             }
         }
     }`
@@ -70,20 +80,14 @@
         var: map<string, string> a;
     }
 
-    struct infNode {
-        flag:    ok
-        ptr:     infon    item
-        ptr:     infNode  next
-    }
-
     struct pureInfon {
         flag: Initialized
         mode: ParseState [pUnset, notParsed, parsing, parsed]
         flag: LeftEdgeReadyToParse
 
-        mode: Type      [tUnknown, tNum, tStr, tList]
-        mode: Format    [fUnknown, fLiteral, fConcat, fReel, fFraction]
-        mode: NumBase   [dDefault, dDecimal, dHex, dBinary]
+        mode: type      [tUnknown, tNum, tStr, tList]
+        mode: format    [fUnknown, fLiteral, fConcat, fReel, fFraction]
+        mode: numBase   [dDefault, dDecimal, dHex, dBinary]
         flag: hasPattern
         flag: invert
         flag: embeddedSeq
@@ -100,6 +104,7 @@
 
         flag: asDesc
         flag: toExec
+        flag: moveHome
         flag: asNot
         flag: xOptimized
 
@@ -109,55 +114,25 @@
         ptr: infon pred
         ptr: infon args
 
-        var: infNode workList;
+        ptr: infNode workList
         var: streamSpan curPos;
 
-        func: bool doRule(infonPtr i){
+        func: bool: doRule(infonPtr i){
         }
         END
     }
 
-
-
-    struct agent{
-        mode: coreRunState [corePreInit, coreParsing, coreRunning]
-        var: string resourceDir;
-        var: string dbName;
-        var: string newsURI;
-        var:  infon topInfon;
-        var:  infonParser parser;
-        var:  bool doneYet;
-
-        func: bool doRule(infon* i){
-            switch(i->flags&coreRunStateMask){
-                case corePreInit:    break;
-                case coreParsing: parser.doRule(i);    break;
-                case coreRunning: topInfon.doRule(i);  break;
-                default:exit(2);
-            }
-        } END
-
-        func: bool pollEvent(infon** inf){return 0;}END
-        func: int eventLoop(){
-            uint64_t now=0, then=0; //SDL_GetTicks();
-            uint64_t frames=0;
-            infon* inf;
-            while (!doneYet){
-                 ++frames;
-                while (pollEvent(&inf)) {
-                    doRule(inf);
-                }
-                if(doneYet) continue;
-  /*              if(portal->needsToBeDrawn) portal->needsToBeDrawn=false; else continue;
-                DrawScreen(portal);
-                SDL_RenderPresent(portal->viewPorts->renderer); //OgrRenderWnd->swapBuffers(false);
-                update(portals[0]);  */
-            }
-       //     if ((now = SDL_GetTicks()) > then) printf("\nFrames per second: %2.2f\n", (((double) frames * 1000) / (now - then)));
-
-        } END
-
+    struct infNode {
+        flag:    looseType
+        mode:    leftMode  [colLeft0,  colLeft1,  colLeft2]
+        mode:    rightMode [colRight0, colRight1, colRight2]
+        ptr:     infon    item
+        ptr:     infNode  next
     }
+
+
+
+
 
 
 }
