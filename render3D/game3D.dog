@@ -109,7 +109,7 @@ struct GamePlayScreen: inherits=GameMode{
         cr.fillNow()
 
         cr.setColor(Styler.White)
-        mainScene.draw(cr, interpolation)
+        mainScene.draw(cr, interpolation, worldMatx)
         cr.strokeNow()
         window.requestRedraw()
     }
@@ -162,29 +162,33 @@ struct GamePlayScreen: inherits=GameMode{
         looper <- ourLooper
 
         our Mesh:: mesh
+        our Thing3D:: cube1
 
         me Triangle3D: t1;
         // SOUTH
-        t1.INIT(0.0, 0.0, 0.0,    0.0, 0.6, 0.0,    0.6, 0.6, 0.0);   mesh.tris.pushLast(t1)
-        t1.INIT(0.0, 0.0, 0.0,    0.6, 0.6, 0.0,    0.6, 0.0, 0.0);   mesh.tris.pushLast(t1)
+        t1.INIT(0.0, 0.0, 0.0,    0.0, 0.6, 0.0,    0.6, 0.6, 0.0);   mesh.tris.append(t1)
+        t1.INIT(0.0, 0.0, 0.0,    0.6, 0.6, 0.0,    0.6, 0.0, 0.0);   mesh.tris.append(t1)
         // EAST
-        t1.INIT(0.6, 0.0, 0.0,    0.6, 0.6, 0.0,    0.6, 0.6, 0.6);   mesh.tris.pushLast(t1)
-        t1.INIT(0.6, 0.0, 0.0,    0.6, 0.6, 0.6,    0.6, 0.0, 0.6);   mesh.tris.pushLast(t1)
+        t1.INIT(0.6, 0.0, 0.0,    0.6, 0.6, 0.0,    0.6, 0.6, 0.6);   mesh.tris.append(t1)
+        t1.INIT(0.6, 0.0, 0.0,    0.6, 0.6, 0.6,    0.6, 0.0, 0.6);   mesh.tris.append(t1)
         // NORTH
-        t1.INIT(0.6, 0.0, 0.6,    0.6, 0.6, 0.6,    0.0, 0.6, 0.6);   mesh.tris.pushLast(t1)
-        t1.INIT(0.6, 0.0, 0.6,    0.0, 0.6, 0.6,    0.0, 0.0, 0.6);   mesh.tris.pushLast(t1)
+        t1.INIT(0.6, 0.0, 0.6,    0.6, 0.6, 0.6,    0.0, 0.6, 0.6);   mesh.tris.append(t1)
+        t1.INIT(0.6, 0.0, 0.6,    0.0, 0.6, 0.6,    0.0, 0.0, 0.6);   mesh.tris.append(t1)
         // WEST
-        t1.INIT(0.0, 0.0, 0.6,    0.0, 0.6, 0.6,    0.0, 0.6, 0.0);   mesh.tris.pushLast(t1)
-        t1.INIT(0.0, 0.0, 0.6,    0.0, 0.6, 0.0,    0.0, 0.0, 0.0);   mesh.tris.pushLast(t1)
+        t1.INIT(0.0, 0.0, 0.6,    0.0, 0.6, 0.6,    0.0, 0.6, 0.0);   mesh.tris.append(t1)
+        t1.INIT(0.0, 0.0, 0.6,    0.0, 0.6, 0.0,    0.0, 0.0, 0.0);   mesh.tris.append(t1)
         // TOP
-        t1.INIT(0.0, 0.6, 0.0,    0.0, 0.6, 0.6,    0.6, 0.6, 0.6);   mesh.tris.pushLast(t1)
-        t1.INIT(0.0, 0.6, 0.0,    0.6, 0.6, 0.6,    0.6, 0.6, 0.0);   mesh.tris.pushLast(t1)
+        t1.INIT(0.0, 0.6, 0.0,    0.0, 0.6, 0.6,    0.6, 0.6, 0.6);   mesh.tris.append(t1)
+        t1.INIT(0.0, 0.6, 0.0,    0.6, 0.6, 0.6,    0.6, 0.6, 0.0);   mesh.tris.append(t1)
         // BOTTOM
-        t1.INIT(0.6, 0.0, 0.6,    0.0, 0.0, 0.6,    0.0, 0.0, 0.0);   mesh.tris.pushLast(t1)
-        t1.INIT(0.6, 0.0, 0.6,    0.0, 0.0, 0.0,    0.6, 0.0, 0.0);   mesh.tris.pushLast(t1)
+        t1.INIT(0.6, 0.0, 0.6,    0.0, 0.0, 0.6,    0.0, 0.0, 0.0);   mesh.tris.append(t1)
+        t1.INIT(0.6, 0.0, 0.6,    0.0, 0.0, 0.0,    0.6, 0.0, 0.0);   mesh.tris.append(t1)
         //print("NumMeshes:", mesh.tris.size(), "\n")
 
-        mainScene.meshes.pushLast(mesh)
+        cube1.meshes.append(mesh)
+        me Vec3D: loc {-3.0, 0.0, 0.0}
+        cube1.location <- loc
+        mainScene.parts["cube1"] <- cube1
 
         movingLeft <- false
         movingRight <- false
@@ -197,6 +201,8 @@ struct GLOBAL{
     our GameMenuScreen:: gameMenuScreen
     our GamePauseScreen:: gamePauseScreen
     our GamePlayScreen:: gamePlayScreen
+    me Matrix4: worldMatx
+    me Thing3D: mainScene
     me bool: movingLeft
     me bool: movingRight
 
