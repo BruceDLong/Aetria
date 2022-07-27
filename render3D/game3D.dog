@@ -1,0 +1,231 @@
+// game3D.dog
+
+LinuxBuild: Platform='Linux' CPU='amd64' Lang='CPP' LangVersion='GNU' optimize='speed';
+//SwingBuild: Platform='Java' CPU='JavaVM' Lang='Java' optimize='speed';
+//AndroidBuild: Platform='Android' CPU='JavaVM' Lang='Java' optimize='power';
+//iPhoneBuild: Platform='IOS' CPU='amd64' Lang='Swift' optimize='speed';
+
+Title = "game3D"
+FileName = "game3D"
+Version = "1.0"
+CopyrightMesg = "Public Domain"
+Authors = "Bruce Long"
+Description = "This is a test harnes for a 3D renderer"
+ProgramOrLibrary = "program"
+
+featuresNeeded = [GameToolkit, Render3D]
+
+LicenseText = `Public Domain`
+
+runCode=`
+    initializeGraphics(true)
+    setUpGame()
+    gameLooper.play(3, 40)
+    deinitGraphics()
+`
+////////////   A p p l i c a t i o n   a n d   G l o b a l s
+
+struct GameMenuScreen: inherits=GameMode{
+    me int: textY
+
+    void: update() <- {}
+    void: draw(their GUI_ctxt: cr, me double: interpolation) <- {
+        textY <- 100
+    cr.setColor(Styler.DarkSlateBlue)
+        cr.rectangle(0,0,screenWidth, screenHeight)
+        cr.fillNow()
+
+        cr.setColor(Styler.White)
+        our fontSpec:: testFont {"Ariel", 20, 0}
+    if (winner) {
+        renderTextCentered(cr, "WINNER!", testFont, screenWidth/2, textY)
+        textY <+- 100
+    }
+    if (finalScore) {
+        renderTextCentered(cr, "Final Score: " + toString(finalScore), testFont, screenWidth/2, textY)
+        textY <+- 100
+        renderTextCentered(cr, "Press Space to Play Again!", testFont, screenWidth/2, textY)
+        textY <+- 100
+    } else {
+        renderTextCentered(cr, "Press Space to Play!", testFont, screenWidth/2, textY)
+        textY <+- 100
+    }
+        renderTextCentered(cr, "Press Escape to Exit", testFont, screenWidth/2, textY)
+    textY <+- 100
+        cr.strokeNow()
+        window.requestRedraw()
+    }
+    void: pause() <- {}
+    void: resume() <- {}
+    void: keyDownEventHandler(their KeyInfo: event) <- {
+        switch (event.sym){
+            case SDLK_SPACE:{
+        setUpGame()
+        looper.setGameMode(gamePlayScreen)
+            }
+            case SDLK_ESCAPE:{
+                looper.quitGame()
+            }
+        }
+    }
+    void: init(our GameLooper: ourLooper) <- {looper <- ourLooper}
+    void: deInit() <- {}
+}
+struct GamePauseScreen: inherits=GameMode{
+    void: update() <- {}
+    void: draw(their GUI_ctxt: cr, me double: interpolation) <- {
+        cr.setColor(Styler.White)
+        our fontSpec:: testFont {"Ariel", 20, 0}
+        renderTextCentered(cr, "PAUSED", testFont, screenWidth/2, 200)
+        renderTextCentered(cr, "Press Space to Continue Playing", testFont, screenWidth/2, 300)
+    renderTextCentered(cr, "Press Escape to Exit", testFont, screenWidth/2, 400)
+        cr.strokeNow()
+        window.requestRedraw()
+    }
+    void: pause() <- {}
+    void: resume() <- {}
+    void: keyDownEventHandler(their KeyInfo: event) <- {
+        switch (event.sym){
+            case SDLK_SPACE:{
+                looper.setGameMode(gamePlayScreen)
+            }
+            case SDLK_ESCAPE:{
+                finalScore <- playerScore
+        looper.setGameMode(gameMenuScreen)
+            }
+        }
+    }
+    void: init(our GameLooper: ourLooper) <- {looper <- ourLooper}
+    void: deInit() <- {}
+}
+struct GamePlayScreen: inherits=GameMode{
+
+    void: update() <- {
+
+    }
+    void: draw(their GUI_ctxt: cr, me double: interpolation) <- {
+        cr.setColor(Styler.Black)
+        cr.rectangle(0,0,screenWidth, screenHeight)
+        cr.fillNow()
+
+        cr.setColor(Styler.White)
+        mainScene.draw(cr, interpolation)
+        cr.strokeNow()
+        window.requestRedraw()
+    }
+    bool: pointIsInRectangle(me int: ptX, me int: ptY, me int: RectX, me int: rectY, me int: rectWidth, me int: rectHeight)<- {
+        return ((ptX >= RectX) and (ptX <= RectX + rectWidth) and (ptY >= rectY) and (ptY <= rectY + rectHeight))
+    }
+
+
+    void: pause() <- {}
+    void: resume() <- {}
+    void: keyDownEventHandler(their KeyInfo: event) <- {
+        switch (event.sym){
+            case SDLK_SPACE:{
+
+            }
+            case SDLK_ESCAPE:{
+                pause()
+                looper.setGameMode(gamePauseScreen)
+            }
+            case SDLK_LEFT:{
+        movingLeft <- true
+
+            }
+            case SDLK_RIGHT:{
+        movingRight <- true
+
+            }
+            case SDLK_f:{toggleFullScreen()}
+        }
+    }
+    void: keyUpEventHandler(their KeyInfo: event) <- {
+        switch (event.sym){
+            case SDLK_SPACE:{
+
+            }
+            case SDLK_ESCAPE:{
+                pause()
+                looper.setGameMode(gamePauseScreen)
+            }
+            case SDLK_LEFT:{
+                movingLeft <- false
+            }
+            case SDLK_RIGHT:{
+        movingRight <- false
+            }
+            case SDLK_f:{toggleFullScreen()}
+        }
+    }
+    void: init(our GameLooper: ourLooper) <- {
+        looper <- ourLooper
+
+        our Mesh:: mesh
+
+        me Triangle3D: t1;
+        // SOUTH
+        t1.INIT(0.0, 0.0, 0.0,    0.0, 0.6, 0.0,    0.6, 0.6, 0.0);   mesh.tris.pushLast(t1)
+        t1.INIT(0.0, 0.0, 0.0,    0.6, 0.6, 0.0,    0.6, 0.0, 0.0);   mesh.tris.pushLast(t1)
+        // EAST
+        t1.INIT(0.6, 0.0, 0.0,    0.6, 0.6, 0.0,    0.6, 0.6, 0.6);   mesh.tris.pushLast(t1)
+        t1.INIT(0.6, 0.0, 0.0,    0.6, 0.6, 0.6,    0.6, 0.0, 0.6);   mesh.tris.pushLast(t1)
+        // NORTH
+        t1.INIT(0.6, 0.0, 0.6,    0.6, 0.6, 0.6,    0.0, 0.6, 0.6);   mesh.tris.pushLast(t1)
+        t1.INIT(0.6, 0.0, 0.6,    0.0, 0.6, 0.6,    0.0, 0.0, 0.6);   mesh.tris.pushLast(t1)
+        // WEST
+        t1.INIT(0.0, 0.0, 0.6,    0.0, 0.6, 0.6,    0.0, 0.6, 0.0);   mesh.tris.pushLast(t1)
+        t1.INIT(0.0, 0.0, 0.6,    0.0, 0.6, 0.0,    0.0, 0.0, 0.0);   mesh.tris.pushLast(t1)
+        // TOP
+        t1.INIT(0.0, 0.6, 0.0,    0.0, 0.6, 0.6,    0.6, 0.6, 0.6);   mesh.tris.pushLast(t1)
+        t1.INIT(0.0, 0.6, 0.0,    0.6, 0.6, 0.6,    0.6, 0.6, 0.0);   mesh.tris.pushLast(t1)
+        // BOTTOM
+        t1.INIT(0.6, 0.0, 0.6,    0.0, 0.0, 0.6,    0.0, 0.0, 0.0);   mesh.tris.pushLast(t1)
+        t1.INIT(0.6, 0.0, 0.6,    0.0, 0.0, 0.0,    0.6, 0.0, 0.0);   mesh.tris.pushLast(t1)
+        //print("NumMeshes:", mesh.tris.size(), "\n")
+
+        mainScene.meshes.pushLast(mesh)
+
+        movingLeft <- false
+        movingRight <- false
+    }
+    void: deInit() <- {}
+}
+struct GLOBAL{
+    me int: fontSize
+    our GameLooper:: gameLooper
+    our GameMenuScreen:: gameMenuScreen
+    our GamePauseScreen:: gamePauseScreen
+    our GamePlayScreen:: gamePlayScreen
+    me bool: movingLeft
+    me bool: movingRight
+
+    // SETTINGS
+    const int: scaleFactor <- 2
+
+
+    me int: playerScore
+    me int: finalScore
+    me bool: winner
+
+    void: setUpGame() <- {
+        setUpMatrixes()
+        playerScore <- 0
+        winner <- false
+        gameMenuScreen.init(gameLooper)
+        gamePauseScreen.init(gameLooper)
+        gamePlayScreen.init(gameLooper)
+        gameLooper.setGameMode(gameMenuScreen)
+    }
+    void: toggleFullScreen() <- {
+        if(getFullScreenMode()){
+            fullScreenModeOff()
+        }else{
+            fullScreenModeOn()
+        }
+    }
+}
+
+struct APP{
+    //my GUI: gui
+}
