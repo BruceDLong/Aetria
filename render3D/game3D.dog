@@ -115,7 +115,6 @@ struct GamePlayScreen: inherits=GameMode{
 
         cr.setColor(Styler.White)
         mainScene.draw(cr, interpolation, worldMatx)
-        cr.strokeNow()
         window.requestRedraw()
     }
     bool: pointIsInRectangle(me int: ptX, me int: ptY, me int: RectX, me int: rectY, me int: rectWidth, me int: rectHeight)<- {
@@ -190,26 +189,21 @@ struct GamePlayScreen: inherits=GameMode{
         //print("NumMeshes:", mesh.tris.size(), "\n")
 
 me Matrix4: ID; ID.makeIdentity()
-        mainScene.setLocation(0.0, 0.0, 0.0)
-        mainScene.rotateX(0.0)
-        mainScene.rotateY(0.0)
-        mainScene.rotateZ(0.0)
+        mainScene.name <- "mainScene"
         cube1.meshes.append(mesh)
+        cube1.name <- "cube1"
+        cube1.color <- Styler.Blue
         cube1.setLocation(-3.0, -1.0, 0.0)
-        cube1.rotateX(0.0)
-        cube1.rotateY(0.0)
-        cube1.rotateZ(0.0)
+        cube1.setScale(-2.0, 0.5, 0.5)
         cube1.calcThingMatx(ID)
-        mainScene.parts["cube1"] <- cube1
-
+        mainScene.addPart(cube1)
 
         cube2.meshes.append(mesh)
+        cube2.name <- "cube2"
+        cube2.color <- Styler.Green
         cube2.setLocation(3.0, 1.0, 0.0)
-        cube2.rotateX(0.0)
-        cube2.rotateY(0.0)
-        cube2.rotateZ(0.0)
         cube2.calcThingMatx(ID)
-        mainScene.parts["cube2"] <- cube2
+        mainScene.addPart(cube2)
 
         movingLeft <- false
         movingRight <- false
