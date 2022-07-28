@@ -60,8 +60,7 @@ struct GameMenuScreen: inherits=GameMode{
     void: keyDownEventHandler(their KeyInfo: event) <- {
         switch (event.sym){
             case SDLK_SPACE:{
-        setUpGame()
-        looper.setGameMode(gamePlayScreen)
+                looper.setGameMode(gamePlayScreen)
             }
             case SDLK_ESCAPE:{
                 looper.quitGame()
@@ -101,7 +100,13 @@ struct GamePauseScreen: inherits=GameMode{
 struct GamePlayScreen: inherits=GameMode{
 
     void: update() <- {
+        cube1.rotateZ(0.02)
+        cube1.rotateX(0.01)
+        cube1.calcThingMatx(worldMatx)
 
+        cube2.rotateZ(-0.02)
+        cube2.rotateX(-0.01)
+        cube2.calcThingMatx(worldMatx)
     }
     void: draw(their GUI_ctxt: cr, me double: interpolation) <- {
         cr.setColor(Styler.Black)
@@ -162,7 +167,6 @@ struct GamePlayScreen: inherits=GameMode{
         looper <- ourLooper
 
         our Mesh:: mesh
-        our Thing3D:: cube1
 
         me Triangle3D: t1;
         // SOUTH
@@ -185,10 +189,27 @@ struct GamePlayScreen: inherits=GameMode{
         t1.INIT(0.6, 0.0, 0.6,    0.0, 0.0, 0.0,    0.6, 0.0, 0.0);   mesh.tris.append(t1)
         //print("NumMeshes:", mesh.tris.size(), "\n")
 
+me Matrix4: ID; ID.makeIdentity()
+        mainScene.setLocation(0.0, 0.0, 0.0)
+        mainScene.rotateX(0.0)
+        mainScene.rotateY(0.0)
+        mainScene.rotateZ(0.0)
         cube1.meshes.append(mesh)
-        me Vec3D: loc {-3.0, 0.0, 0.0}
-        cube1.location <- loc
+        cube1.setLocation(-3.0, -1.0, 0.0)
+        cube1.rotateX(0.0)
+        cube1.rotateY(0.0)
+        cube1.rotateZ(0.0)
+        cube1.calcThingMatx(ID)
         mainScene.parts["cube1"] <- cube1
+
+
+        cube2.meshes.append(mesh)
+        cube2.setLocation(3.0, 1.0, 0.0)
+        cube2.rotateX(0.0)
+        cube2.rotateY(0.0)
+        cube2.rotateZ(0.0)
+        cube2.calcThingMatx(ID)
+        mainScene.parts["cube2"] <- cube2
 
         movingLeft <- false
         movingRight <- false
@@ -196,12 +217,15 @@ struct GamePlayScreen: inherits=GameMode{
     void: deInit() <- {}
 }
 struct GLOBAL{
+
+    our Thing3D:: cube1
+    our Thing3D:: cube2
+
     me int: fontSize
     our GameLooper:: gameLooper
     our GameMenuScreen:: gameMenuScreen
     our GamePauseScreen:: gamePauseScreen
     our GamePlayScreen:: gamePlayScreen
-    me Matrix4: worldMatx
     me Thing3D: mainScene
     me bool: movingLeft
     me bool: movingRight
