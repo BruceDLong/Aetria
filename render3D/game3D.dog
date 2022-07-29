@@ -114,7 +114,7 @@ struct GamePlayScreen: inherits=GameMode{
         cr.fillNow()
 
         cr.setColor(Styler.White)
-        mainScene.draw(cr, interpolation, worldMatx)
+        mainScene.draw(cr, worldMatx, interpolation)
         window.requestRedraw()
     }
     bool: pointIsInRectangle(me int: ptX, me int: ptY, me int: RectX, me int: rectY, me int: rectWidth, me int: rectHeight)<- {
@@ -166,33 +166,14 @@ struct GamePlayScreen: inherits=GameMode{
         looper <- ourLooper
 
         our Mesh:: mesh
+        meshGenerator.generateMesh("cube",0.6,0, mesh)
 
-        me Triangle3D: t1;
-        // SOUTH
-        t1.INIT(0.0, 0.0, 0.0,    0.0, 0.6, 0.0,    0.6, 0.6, 0.0);   mesh.tris.append(t1)
-        t1.INIT(0.0, 0.0, 0.0,    0.6, 0.6, 0.0,    0.6, 0.0, 0.0);   mesh.tris.append(t1)
-        // EAST
-        t1.INIT(0.6, 0.0, 0.0,    0.6, 0.6, 0.0,    0.6, 0.6, 0.6);   mesh.tris.append(t1)
-        t1.INIT(0.6, 0.0, 0.0,    0.6, 0.6, 0.6,    0.6, 0.0, 0.6);   mesh.tris.append(t1)
-        // NORTH
-        t1.INIT(0.6, 0.0, 0.6,    0.6, 0.6, 0.6,    0.0, 0.6, 0.6);   mesh.tris.append(t1)
-        t1.INIT(0.6, 0.0, 0.6,    0.0, 0.6, 0.6,    0.0, 0.0, 0.6);   mesh.tris.append(t1)
-        // WEST
-        t1.INIT(0.0, 0.0, 0.6,    0.0, 0.6, 0.6,    0.0, 0.6, 0.0);   mesh.tris.append(t1)
-        t1.INIT(0.0, 0.0, 0.6,    0.0, 0.6, 0.0,    0.0, 0.0, 0.0);   mesh.tris.append(t1)
-        // TOP
-        t1.INIT(0.0, 0.6, 0.0,    0.0, 0.6, 0.6,    0.6, 0.6, 0.6);   mesh.tris.append(t1)
-        t1.INIT(0.0, 0.6, 0.0,    0.6, 0.6, 0.6,    0.6, 0.6, 0.0);   mesh.tris.append(t1)
-        // BOTTOM
-        t1.INIT(0.6, 0.0, 0.6,    0.0, 0.0, 0.6,    0.0, 0.0, 0.0);   mesh.tris.append(t1)
-        t1.INIT(0.6, 0.0, 0.6,    0.0, 0.0, 0.0,    0.6, 0.0, 0.0);   mesh.tris.append(t1)
-        //print("NumMeshes:", mesh.tris.size(), "\n")
-
-me Matrix4: ID; ID.makeIdentity()
+        me Matrix4: ID; ID.makeIdentity()
         mainScene.name <- "mainScene"
+
         cube1.meshes.append(mesh)
         cube1.name <- "cube1"
-        cube1.color <- Styler.Blue
+        cube1.color <- Styler.SkyBlue
         cube1.setLocation(-3.0, -1.0, 0.0)
         cube1.setScale(-2.0, 0.5, 0.5)
         cube1.calcThingMatx(ID)
@@ -205,13 +186,22 @@ me Matrix4: ID; ID.makeIdentity()
         cube2.calcThingMatx(ID)
         mainScene.addPart(cube2)
 
+        // Setup lights
+        their LightSource: lightSrc;
+        Allocate(lightSrc)
+        lightSrc.init(lsAmbient, Styler.DarkGray, 0.0, 0.0, 0.0)
+        lightSources.append(lightSrc)
+        Allocate(lightSrc)
+        lightSrc.init(lsDirected, Styler.White, -35.0, -35.0, -45.0)
+        lightSources.append(lightSrc)
+
         movingLeft <- false
         movingRight <- false
     }
     void: deInit() <- {}
 }
 struct GLOBAL{
-
+    me MeshGenerator: meshGenerator
     our Thing3D:: cube1
     our Thing3D:: cube2
 
