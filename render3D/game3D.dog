@@ -107,6 +107,10 @@ struct GamePlayScreen: inherits=GameMode{
         cube2.rotateZ(-0.02)
         cube2.rotateX(-0.01)
         cube2.calcThingMatx(worldMatx)
+
+        cylinder1.rotateZ(-0.01)
+        cylinder1.rotateX(-0.02)
+        cylinder1.calcThingMatx(worldMatx)
     }
     void: draw(their GUI_ctxt: cr, me double: interpolation) <- {
         cr.setColor(Styler.Black)
@@ -165,13 +169,13 @@ struct GamePlayScreen: inherits=GameMode{
     void: init(our GameLooper: ourLooper) <- {
         looper <- ourLooper
 
-        our Mesh:: mesh
-        meshGenerator.generateMesh("cube",0.6,0, mesh)
+        our Mesh:: cubeMesh;     meshGenerator.generateMesh(cubeMesh, "cube", 0.6, 0.0)
+        our Mesh:: cylinderMesh; meshGenerator.genCylinder(cylinderMesh, 2.0, 1.0, 0.25, 25)
 
         me Matrix4: ID; ID.makeIdentity()
         mainScene.name <- "mainScene"
 
-        cube1.meshes.append(mesh)
+        cube1.meshes.append(cubeMesh)
         cube1.name <- "cube1"
         cube1.color <- Styler.SkyBlue
         cube1.setLocation(-3.0, -1.0, 0.0)
@@ -179,12 +183,19 @@ struct GamePlayScreen: inherits=GameMode{
         cube1.calcThingMatx(ID)
         mainScene.addPart(cube1)
 
-        cube2.meshes.append(mesh)
+        cube2.meshes.append(cubeMesh)
         cube2.name <- "cube2"
         cube2.color <- Styler.Green
         cube2.setLocation(3.0, 1.0, 0.0)
         cube2.calcThingMatx(ID)
         mainScene.addPart(cube2)
+
+        cylinder1.meshes.append(cylinderMesh)
+        cylinder1.name <- "cylinder1"
+        cylinder1.color <- Styler.Yellow
+        cylinder1.setLocation(0.0, 0.0, 0.0)
+        cylinder1.calcThingMatx(ID)
+        mainScene.addPart(cylinder1)
 
         // Setup lights
         their LightSource: lightSrc;
@@ -204,6 +215,7 @@ struct GLOBAL{
     me MeshGenerator: meshGenerator
     our Thing3D:: cube1
     our Thing3D:: cube2
+    our Thing3D:: cylinder1
 
     me int: fontSize
     our GameLooper:: gameLooper
