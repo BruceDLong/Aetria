@@ -32,25 +32,25 @@ struct GameMenuScreen: inherits=GameMode{
     void: draw(their GUI_ctxt: cr, me double: interpolation) <- {
         textY <- 100
     cr.setColor(Styler.DarkSlateBlue)
-        cr.rectangle(0,0,screenWidth, screenHeight)
+        cr.rectangle(0,0,windowW, windowH)
         cr.fillNow()
 
         cr.setColor(Styler.White)
         our fontSpec:: testFont {"Ariel", 20, 0}
     if (winner) {
-        renderTextCentered(cr, "WINNER!", testFont, screenWidth/2, textY)
+        renderTextCentered(cr, "WINNER!", testFont, windowW/2, textY)
         textY <+- 100
     }
     if (finalScore) {
-        renderTextCentered(cr, "Final Score: " + toString(finalScore), testFont, screenWidth/2, textY)
+        renderTextCentered(cr, "Final Score: " + toString(finalScore), testFont, windowW/2, textY)
         textY <+- 100
-        renderTextCentered(cr, "Press Space to Play Again!", testFont, screenWidth/2, textY)
+        renderTextCentered(cr, "Press Space to Play Again!", testFont, windowW/2, textY)
         textY <+- 100
     } else {
-        renderTextCentered(cr, "Press Space to Play!", testFont, screenWidth/2, textY)
+        renderTextCentered(cr, "Press Space to Play!", testFont, windowW/2, textY)
         textY <+- 100
     }
-        renderTextCentered(cr, "Press Escape to Exit", testFont, screenWidth/2, textY)
+        renderTextCentered(cr, "Press Escape to Exit", testFont, windowW/2, textY)
     textY <+- 100
         cr.strokeNow()
         window.requestRedraw()
@@ -75,9 +75,9 @@ struct GamePauseScreen: inherits=GameMode{
     void: draw(their GUI_ctxt: cr, me double: interpolation) <- {
         cr.setColor(Styler.White)
         our fontSpec:: testFont {"Ariel", 20, 0}
-        renderTextCentered(cr, "PAUSED", testFont, screenWidth/2, 200)
-        renderTextCentered(cr, "Press Space to Continue Playing", testFont, screenWidth/2, 300)
-    renderTextCentered(cr, "Press Escape to Exit", testFont, screenWidth/2, 400)
+        renderTextCentered(cr, "PAUSED", testFont, windowW/2, 200)
+        renderTextCentered(cr, "Press Space to Continue Playing", testFont, windowW/2, 300)
+        renderTextCentered(cr, "Press Escape to Exit", testFont, windowW/2, 400)
         cr.strokeNow()
         window.requestRedraw()
     }
@@ -114,7 +114,7 @@ struct GamePlayScreen: inherits=GameMode{
     }
     void: draw(their GUI_ctxt: cr, me double: interpolation) <- {
         cr.setColor(Styler.Black)
-        cr.rectangle(0,0,screenWidth, screenHeight)
+        cr.rectangle(0,0,windowW, windowH)
         cr.fillNow()
 
         cr.setColor(Styler.White)
@@ -213,7 +213,6 @@ struct GamePlayScreen: inherits=GameMode{
     void: deInit() <- {}
 }
 struct GLOBAL{
-    me MeshGenerator: meshGenerator
     our Thing3D:: cube1
     our Thing3D:: cube2
     our Thing3D:: cylinder1
@@ -236,7 +235,7 @@ struct GLOBAL{
     me bool: winner
 
     void: setUpGame() <- {
-        setUpMatrixes()
+        setUpMatrixes(90, 0,0, windowW, windowH)
         playerScore <- 0
         winner <- false
         gameMenuScreen.init(gameLooper)
