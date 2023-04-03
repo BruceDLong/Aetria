@@ -102,15 +102,15 @@ struct GamePlayScreen: inherits=GameMode{
     void: update() <- {
         cube1.rotateZ(0.02)
         cube1.rotateX(0.01)
-        cube1.calcThingMatx(worldMatx)
+        cube1.calcThingMatx(win3D.worldMatx)
 
         cube2.rotateZ(-0.02)
         cube2.rotateX(-0.01)
-        cube2.calcThingMatx(worldMatx)
+        cube2.calcThingMatx(win3D.worldMatx)
 
         cylinder1.rotateZ(-0.01)
         cylinder1.rotateX(-0.02)
-        cylinder1.calcThingMatx(worldMatx)
+        cylinder1.calcThingMatx(win3D.worldMatx)
     }
     void: draw(their GUI_ctxt: cr, me double: interpolation) <- {
         cr.setColor(Styler.Black)
@@ -118,7 +118,7 @@ struct GamePlayScreen: inherits=GameMode{
         cr.fillNow()
 
         cr.setColor(Styler.White)
-        mainScene.draw(cr, worldMatx, interpolation)
+        mainScene.draw(cr, win3D.worldMatx, interpolation, win3D)
         window.requestRedraw()
     }
     bool: pointIsInRectangle(me int: ptX, me int: ptY, me int: RectX, me int: rectY, me int: rectWidth, me int: rectHeight)<- {
@@ -202,10 +202,10 @@ struct GamePlayScreen: inherits=GameMode{
         their LightSource: lightSrc;
         Allocate(lightSrc)
         lightSrc.init(lsAmbient, Styler.DarkGray, 0.0, 0.0, 0.0)
-        lightSources.append(lightSrc)
+        win3D.lightSources.append(lightSrc)
         Allocate(lightSrc)
         lightSrc.init(lsDirected, Styler.White, -35.0, -35.0, -45.0)
-        lightSources.append(lightSrc)
+        win3D.lightSources.append(lightSrc)
 
         movingLeft <- false
         movingRight <- false
@@ -223,6 +223,7 @@ struct GLOBAL{
     our GamePauseScreen:: gamePauseScreen
     our GamePlayScreen:: gamePlayScreen
     me Thing3D: mainScene
+    our Window3D: win3D
     me bool: movingLeft
     me bool: movingRight
 
@@ -235,7 +236,9 @@ struct GLOBAL{
     me bool: winner
 
     void: setUpGame() <- {
-        setUpMatrixes(90, 0,0, windowW, windowH)
+        Allocate(win3D)
+        Allocate(win3D.lightSources)
+        win3D.setUpMatrixes(90, 0,0, windowW, windowH)
         playerScore <- 0
         winner <- false
         gameMenuScreen.init(gameLooper)
